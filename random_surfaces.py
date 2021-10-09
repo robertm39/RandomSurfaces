@@ -8,8 +8,8 @@ Created on Sat Oct  9 14:32:23 2021
 import numpy as np
 
 class RandomWalk:
-    def __init__(self, stdev_per_unit):
-        self.stdev_per_unit = stdev_per_unit
+    def __init__(self, var_per_unit):
+        self.var_per_unit = var_per_unit
         
         #All random walks start at zero
         self.points = {0: 0}
@@ -17,11 +17,15 @@ class RandomWalk:
         self.min_x = 0
         self.max_x = 0
     
+    def stdev_for_dist(self, dist):
+        return np.sqrt(self.var_per_unit * dist)
+    
     def sample_point_extreme_(self, x):
         start_x = self.min_x if x < self.min_x else self.max_x
         
         dist = abs(x -  start_x)
-        stdev = self.stdev_per_unit * dist
+        # stdev = np.sqrt(self.var_per_unit * dist)
+        stdev = self.stdev_for_dist(dist)
         mean = self.points[start_x]
         
         sample = np.random.normal(mean, stdev)
@@ -35,8 +39,8 @@ class RandomWalk:
         # Find the points directly before and after x
         # Make this more efficient later
         prev = None
-        for check_x in self.points:
-            if not prev:
+        for check_x in sorted(self.points.keys()):
+            if prev is None:
                 prev = check_x
                 continue
             if check_x > x:
@@ -45,8 +49,10 @@ class RandomWalk:
                 break
             prev = check_x
         
-        s1 = self.stdev_per_unit * (x - x_1)
-        s2 = self.stdev_per_unit * (x_2 - x)
+        # s1 = self.stdev_per_unit * (x - x_1)
+        # s2 = self.stdev_per_unit * (x_2 - x)
+        s1 = self.stdev_for_dist(x - x_1)
+        s2 = self.stdev_for_dist(x_2 - x)
         
         m1 = self.points[x_1]
         m2 = self.points[x_2]
@@ -76,3 +82,6 @@ class RandomWalk:
         self.points[x] = y
         
         return y
+    
+    def items(self):
+        return self.points.items()
